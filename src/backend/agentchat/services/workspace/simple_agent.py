@@ -235,6 +235,8 @@ class WorkSpaceSimpleAgent:
 
         final_answer = ""
         async for chunk in self.model.astream(input=messages, config={"callbacks": [usage_metadata_callback]}):
+            if not chunk.content:
+                continue
             yield {
                 "event": "task_result",
                 "data":{

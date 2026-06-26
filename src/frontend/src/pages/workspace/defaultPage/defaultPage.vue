@@ -175,8 +175,14 @@ const toggleMcp = (serverId: string) => {
 
 // 生成UUID（模拟Python的uuid4().hex）
 const generateSessionId = (): string => {
-  // 使用crypto.randomUUID()生成UUID，然后移除横杠
-  return crypto.randomUUID().replace(/-/g, '')
+  // 兼容HTTP环境的UUID生成
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID().replace(/-/g, '')
+  }
+  // 降级方案：手动生成UUID v4
+  return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, () => {
+    return Math.floor(Math.random() * 16).toString(16)
+  })
 }
 
 // 自动滚动到底部
