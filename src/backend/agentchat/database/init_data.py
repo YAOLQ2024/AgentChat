@@ -35,10 +35,10 @@ async def init_agentchat_system():
     await init_database()
 
     try:
-        agents = await AgentService.get_agent()
+        system_agents = await AgentService.get_personal_agent_by_user_id(user_id=SystemUser)
 
-        # 首次启动
-        if not agents:
+        # 首次启动（检查系统智能体是否存在，避免重启时重复插入）
+        if not system_agents:
             logger.info("First-time setup: initializing agentchat system...")
             await asyncio.gather(
                 _init_default_tools(),
@@ -50,7 +50,7 @@ async def init_agentchat_system():
             logger.success("Initialized agentchat successfully")
             return
 
-        logger.info(f"Existing system detected ({len(agents)} agents), updating config...")
+        logger.info(f"Existing system detected ({len(system_agents)} system agents), updating config...")
 
         await asyncio.gather(
             _update_exist_llm(),

@@ -194,15 +194,21 @@ class AgentService:
     ):
         """
         查询指定用户和系统 Agent
-        返回字典列表
+        返回字典列表（去重）
         """
-        system_results = await AgentDao.get_agent_by_user_id(
-            user_id=SystemUser,
-        )
-        user_results = await AgentDao.get_agent_by_user_id(
-            user_id=user_id,
-        )
-        return cls._to_dict_list(system_results + user_results)
+        if user_id == SystemUser:
+            results = await AgentDao.get_agent_by_user_id(user_id=SystemUser)
+        else:
+            system_results = await AgentDao.get_agent_by_user_id(user_id=SystemUser)
+            user_results = await AgentDao.get_agent_by_user_id(user_id=user_id)
+            # 按 agent_id 去重，防止系统用户和当前用户有重叠数据
+            seen = set()
+            results = []
+            for agent in system_results + user_results:
+                if agent.agent_id not in seen:
+                    seen.add(agent.agent_id)
+                    results.append(agent)
+        return cls._to_dict_list(results)
 
     @classmethod
     async def select_agent_by_custom(

@@ -47,7 +47,7 @@ multi_models:
   # Embedding 模型配置 (用于向量化)
   embedding:
     api_key: "${SILICONFLOW_API_KEY}"
-    base_url: "https://api.siliconflow.cn/v1/embedding"
+    base_url: "https://api.siliconflow.cn/v1"
     model_name: "Qwen/Qwen3-Embedding-8B"
 
   # Rerank 模型配置 (用于重排序召回结果)

@@ -30,9 +30,15 @@ def _get_weather(location: str):
     try:
         res = requests.get(url=app_settings.tools.weather.get('endpoint'), params=params, timeout=5)  # 预报天气
         result = res.json()
-        city = result.get('forecasts')[0].get("city")  # 获取城市
+
+        # 检查 API 返回是否成功
+        if result.get('status') != '1' or not result.get('forecasts'):
+            info = result.get('info', '未知错误')
+            return f"天气查询失败: {info}"
+
+        city = result['forecasts'][0].get("city")  # 获取城市
         message_result = []
-        data = result.get('forecasts')[0].get("casts")
+        data = result['forecasts'][0].get("casts")
 
         for item in data:
             date = item.get('date')  # 获取日期

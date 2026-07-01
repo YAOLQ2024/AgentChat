@@ -4,8 +4,13 @@ from tavily import TavilyClient
 
 from agentchat.settings import app_settings
 
+tavily_client = None
 
-tavily_client = TavilyClient(app_settings.tools.tavily.get("api_key"))
+def _get_tavily_client():
+    global tavily_client
+    if tavily_client is None:
+        tavily_client = TavilyClient(app_settings.tools.tavily.get("api_key"))
+    return tavily_client
 
 @tool("web_search", parse_docstring=True)
 def tavily_search(query: str,
@@ -28,7 +33,8 @@ def tavily_search(query: str,
 
 def _tavily_search(query, topic, max_results, time_range):
     """使用Tavily搜索工具给用户进行搜索"""
-    response = tavily_client.search(
+    client = _get_tavily_client()
+    response = client.search(
         query=query,
         country="china",
         topic=topic,
