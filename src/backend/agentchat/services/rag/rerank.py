@@ -17,25 +17,46 @@ class Reranker:
             "Authorization": f"Bearer {app_settings.multi_models.rerank.api_key}",
             "Content-Type": "application/json"
         }
-        payload = {
-            "model": app_settings.multi_models.rerank.model_name,
-            "input": {
+        top_n = app_settings.rag.retrival.get('top_k', 5) * 2
+        model = app_settings.multi_models.rerank.model_name
+        url = app_settings.multi_models.rerank.base_url
+
+        # 兼容两种 API 格式：扁平格式（SiliconFlow 等）和嵌套格式（其他供应商）
+        payloads = [
+            # 扁平格式
+            {
+                "model": model,
                 "query": query,
-                "documents": documents
+                "documents": documents,
+                "top_n": top_n,
+                "return_documents": True
             },
-            "parameters": {
-                "return_documents": True,
-                "top_n": app_settings.rag.retrival.get('top_k') * 2
+            # 嵌套格式
+            {
+                "model": model,
+                "input": {
+                    "query": query,
+                    "documents": documents
+                },
+                "parameters": {
+                    "return_documents": True,
+                    "top_n": top_n
+                }
             }
-        }
+        ]
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(url=app_settings.multi_models.rerank.base_url, headers=headers, data=json.dumps(payload)) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result['output']['results']
-                else:
-                    response.raise_for_status()
+            for payload in payloads:
+                async with session.post(url=url, headers=headers, data=json.dumps(payload)) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        # 兼容两种返回格式
+                        return result.get('results') or result.get('output', {}).get('results', [])
+                    elif response.status == 400:
+                        continue  # 格式不对，尝试下一种
+                    else:
+                        response.raise_for_status()
+            return []
 
     @classmethod
     async def rerank_documents(cls, query, documents):

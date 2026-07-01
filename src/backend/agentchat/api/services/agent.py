@@ -205,8 +205,8 @@ class AgentService:
             seen = set()
             results = []
             for agent in system_results + user_results:
-                if agent.agent_id not in seen:
-                    seen.add(agent.agent_id)
+                if agent.id not in seen:
+                    seen.add(agent.id)
                     results.append(agent)
         return cls._to_dict_list(results)
 
