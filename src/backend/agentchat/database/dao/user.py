@@ -1,5 +1,7 @@
 
 from agentchat.database.models.user import UserTable
+from agentchat.database.models.user_role import UserRole
+from agentchat.database.models.role import AdminRole
 from typing import List
 from sqlmodel import Session, select, func, update
 from agentchat.database.session import session_getter
@@ -81,6 +83,7 @@ class UserDao:
         with session_getter() as session:
             session.add(UserTable(user_email=user_email, user_id=user_id, user_avatar=user_avatar,
                                   user_name=user_name, user_password=user_password))
+            session.add(UserRole(user_id=user_id, role_id=AdminRole))
             session.commit()
 
     @classmethod
